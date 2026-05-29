@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Midnight Library</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0f;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Georgia', serif;
+            color: #c9c9c9;
+            padding: 20px;
+        }
+        #game {
+            max-width: 700px;
+            width: 100%;
+            background: linear-gradient(145deg, #12121a, #0d0d12);
+            border: 1px solid #2a2a3a;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+        h1 {
+            text-align: center;
+            color: #8b7cf7;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(139, 124, 247, 0.5);
+        }
+        #subtitle {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 30px;
+        }
+        #story {
+            font-size: 1.15em;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            min-height: 150px;
+        }
+        #story p {
+            margin-bottom: 15px;
+        }
+        .highlight {
+            color: #8b7cf7;
+            font-weight: bold;
+        }
+        .choice-btn {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            margin: 10px 0;
+            background: linear-gradient(135deg, #1a1a2e, #16162a);
+            border: 1px solid #3a3a5a;
+            border-radius: 8px;
+            color: #c9c9c9;
+            font-size: 1em;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+        .choice-btn:hover {
+            background: linear-gradient(135deg, #2a2a4e, #1f1f3a);
+            border-color: #8b7cf7;
+            transform: translateX(5px);
+        }
+        #resetBtn {
+            display: none;
+            margin: 20px auto 0;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #3a2a5a, #2a1a4a);
+            border: 1px solid #8b7cf7;
+            border-radius: 8px;
+            color: #8b7cf7;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        #resetBtn:hover {
+            background: #8b7cf7;
+            color: #0a0a0f;
+        }
+        #sceneImage {
+            width: 100%;
+            height: 150px;
+            background: linear-gradient(135deg, #1a1a2e, #2a2a4e);
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+        }
+    </style>
+</head>
+<body>
+    <div id="game">
+        <h1>📚 The Midnight Library</h1>
+        <p id="subtitle">Every book holds a different life...</p>
+        <div id="sceneImage">🔮</div>
+        <div id="story"></div>
+        <div id="choices"></div>
+        <button id="resetBtn" onclick="startGame()">↺ Play Again</button>
+    </div>
+
+    <script>
+        const story = document.getElementById('story');
+        const choices = document.getElementById('choices');
+        const sceneImage = document.getElementById('sceneImage');
+        const resetBtn = document.getElementById('resetBtn');
+
+        const scenes = {
+            start: {
+                image: "🚪",
+                text: `<p>You stand before an ancient wooden door in the middle of a forest. The sign above reads <span class="highlight">"The Midnight Library"</span> — a place you've only heard whispered in old stories.</p>
+                <p>The door is slightly ajar, warm light spilling through the crack. A faint melody drifts from within — the sound of turning pages and whispers.</p>`,
+                choices: [
+                    { text: "Push open the door and enter", next: "entrance" },
+                    { text: "Call out to see if anyone's inside", next: "callout" },
+                    { text: "Walk away — some doors are best left unopened", next: "leave" }
+                ]
+            },
+            callout: {
+                image: "🗣️",
+                text: `<p>You call out hesitantly, "Hello? Is anyone there?"</p>
+                <p>Silence. Then, a voice — old and wise — responds from within:</p>
+                <p><span class="highlight">"We've been waiting for you. Come in, traveler. The library has chosen you."</span></p>
+                <p>The door swings open on its own.</p>`,
+                choices: [
+                    { text: "Enter the library", next: "entrance" },
+                    { text: "Run away immediately", next: "leave" }
+                ]
+            },
+            leave: {
+                image: "🌲",
+                text: `<p>You turn and walk back into the forest. But after only a few steps, you hear the door creak shut behind you.</p>
+                <p>You turn back — but there's nothing there. Only trees, as far as you can see. No door. No library.</p>
+                <p>Yet somehow, you know you'll find your way back. The library is patient.</p>`,
+                choices: [
+                    { text: "Try to find the door again", next: "start" },
+                    { text: "Accept that some mysteries aren't for you", next: "ending_silent" }
+                ]
+            },
+            entrance: {
+                image: "📖",
+                text: `<p>You step into a vast circular chamber. Shelves spiral upward into infinity, filled with glowing books that hum softly.</p>
+                <p>An elderly woman in a velvet robe approaches. Her eyes are kind but knowing.</p>
+                <p><span class="highlight">"Welcome,"</span> she says. <span class="highlight">"I am the Librarian. Every book here contains a life — a path you could have taken. But choose carefully. Some stories bite."</span></p>
+                <p>She gestures to three books floating nearby:</p>`,
+                choices: [
+                    { text: "A crimson book that pulses like a heartbeat", next: "crimson" },
+                    { text: "A silver book that seems to whisper", next: "silver" },
+                    { text: "A black book that's heavier than it looks", next: "black" }
+                ]
+            },
+            crimson: {
+                image: "❤️",
+                text: `<p>The crimson book burns warmly in your hands. You open it, and suddenly you're transported.</p>
+                <p>You're a famous musician, playing to a crowd of thousands. The lights, the roar of the crowd — it's intoxicating.</p>
+                <p>But as the years pass, you realize the fame was empty. The people loved your music, not you. You're alone in a penthouse, surrounded by awards, wondering what life could have been.</p>
+                <p>You close the book, tears in your eyes.</p>`,
+                choices: [
+                    { text: "Try another book", next: "entrance" },
+                    { text: "Ask the Librarian for wisdom", next: "wisdom" }
+                ]
+            },
+            silver: {
+                image: "💍",
+                text: `<p>The silver book feels light as air. As you read, you find yourself living a different life.</p>
+                <p>You're a scientist who discovered the cure for a deadly disease. You've saved millions. People speak your name with reverence.</p>
+                <p>But the cost was your health — and you missed the small moments. Your family grew distant. You gave everything for humanity, but lost yourself.</p>
+                <p>The book closes gently.</p>`,
+                choices: [
+                    { text: "Try another book", next: "entrance" },
+                    { text: "Ask the Librarian for wisdom", next: "wisdom" }
+                ]
+            },
+            black: {
+                image: "⚰️",
+                text: `<p>The black book is impossibly heavy. With trembling hands, you open it.</p>
+                <p>You see a life of darkness — crime, power, fear. You rose to become a ruler of shadows, feared by all. You had everything... except peace.</p>
+                <p>In the end, betrayal came from those closest to you. The price of power was everything.</p>
+                <p>You slam the book shut, breathing heavily.</p>`,
+                choices: [
+                    { text: "Try another book", next: "entrance" },
+                    { text: "Ask the Librarian for wisdom", next: "wisdom" }
+                ]
+            },
+            wisdom: {
+                image: "✨",
+                text: `<p>The Librarian smiles gently. <span class="highlight">"You've seen what could have been. The question is — what will you choose now?"</span></p>
+                <p>She holds out one final book — this one glows with a soft gold light.</p>
+                <p><span class="highlight">"This one is different. It contains no predetermined path. It's the book of now — of the life you're already living."</span></p>`,
+                choices: [
+                    { text: "Accept the book of now", next: "ending_wisdom" },
+                    { text: "Decline — you're not ready", next: "leave" }
+                ]
+            },
+            ending_wisdom: {
+                image: "🌅",
+                text: `<p>You take the golden book. As you open it, you don't see another life — you see your own, stretching before you.</p>
+                <p>Not perfect. Not famous. But filled with small moments: a friend's laughter, a sunrise, a job well done. Imperfect. Real. <span class="highlight">Yours.</span></p>
+                <p>The Librarian nods. <span class="highlight">"The bravest choice is to live your own life fully. Go now — the library will be here when you need it again."</span></p>
+                <p>You wake up in the forest. The door is gone. But in your pocket, you find a single golden feather.</p>
+                <p style="text-align: center; margin-top: 20px;"><span class="highlight">✨ THE END — The Wisest Path ✨</span></p>`,
+                choices: []
+            },
+            ending_silent: {
+                image: "🌙",
+                text: `<p>You walk away, leaving the mystery unsolved. Perhaps some doors are best left unopened.</p>
+                <p>But sometimes, late at night, you dream of infinite shelves and turning pages. You wonder what stories you might have found.</p>
+                <p>You live your life. Ordinary. Uncertain. But you wonder...</p>
+                <p style="text-align: center; margin-top: 20px;"><span class="highlight">✨ THE END — The Untold Story ✨</span></p>`,
+                choices: []
+            }
+        };
+
+        function showScene(sceneId) {
+            const scene = scenes[sceneId];
+            sceneImage.textContent = scene.image;
+            story.innerHTML = scene.text;
+            choices.innerHTML = '';
+            
+            if (scene.choices.length === 0) {
+                resetBtn.style.display = 'block';
+            } else {
+                resetBtn.style.display = 'none';
+                scene.choices.forEach(choice => {
+                    const btn = document.createElement('button');
+                    btn.className = 'choice-btn';
+                    btn.textContent = choice.text;
+                    btn.onclick = () => showScene(choice.next);
+                    choices.appendChild(btn);
+                });
+            }
+        }
+
+        function startGame() {
+            showScene('start');
+        }
+
+        startGame();
+    </script>
+</body>
+</html>

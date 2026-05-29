@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ashen Curse - Souls-Like</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Georgia', serif;
+            color: #c9c9c9;
+            overflow: hidden;
+        }
+        h1 {
+            font-size: 2.8em;
+            color: #8b4513;
+            text-shadow: 0 0 30px rgba(139,69,19,0.6);
+            margin-bottom: 5px;
+        }
+        #gameContainer {
+            position: relative;
+            border: 4px solid #3a2a1a;
+            border-radius: 4px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.8), inset 0 0 60px rgba(139,69,19,0.1);
+        }
+        canvas { display: block; background: #111; }
+        
+        /* UI */
+        #ui {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .bar-container { width: 200px; }
+        .bar-label { font-size: 0.8em; margin-bottom: 3px; color: #888; }
+        .bar { height: 16px; background: #222; border: 1px solid #444; border-radius: 2px; overflow: hidden; }
+        .health-bar { height: 100%; background: linear-gradient(to right, #8b0000, #cc2222); transition: width 0.2s; }
+        .stamina-bar { height: 100%; background: linear-gradient(to right, #2a5a2a, #44aa44); transition: width 0.2s; }
+        
+        #levelInfo {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            font-size: 1.2em;
+            color: #daa520;
+            text-shadow: 0 0 10px rgba(218,165,32,0.5);
+        }
+        
+        #dialogueBox {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            background: rgba(10,10,10,0.95);
+            border: 2px solid #4a3a2a;
+            border-radius: 4px;
+            padding: 20px;
+            display: none;
+        }
+        #dialogueName { color: #daa520; font-weight: bold; margin-bottom: 8px; }
+        #dialogueText { line-height: 1.6; }
+        #dialogueContinue {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.8em;
+            color: #666;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 50% { opacity: 0.3; } }
+        
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.5em;
+            color: #8b0000;
+            text-shadow: 0 0 20px #000;
+            display: none;
+            text-align: center;
+        }
+        
+        #inventory {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 0.8em;
+            color: #666;
+            text-align: right;
+        }
+        
+        /* Menu screens */
+        .screen {
+            background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+            padding: 40px;
+            border-radius: 8px;
+            border: 2px solid #3a2a1a;
+            text-align: center;
+            max-width: 600px;
+        }
+        .hidden { display: none !important; }
+        h2 { color: #8b4513; margin-bottom: 20px; }
+        p { margin-bottom: 15px; line-height: 1.7; }
+        .btn {
+            padding: 12px 30px;
+            font-size: 1em;
+            background: linear-gradient(135deg, #3a2a1a, #2a1a0a);
+            border: 1px solid #5a4a3a;
+            color: #c9a86c;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        .btn:hover { background: #5a4a3a; color: #fff; }
+        
+        .story-text {
+            background: rgba(0,0,0,0.5);
+            padding: 20px;
+            border-left: 3px solid #8b4513;
+            text-align: left;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        
+        #controls {
+            margin-top: 15px;
+            color: #555;
+            font-size: 0.85em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔥 Ashen Curse 🔥</h1>
+    
+    <!-- Title Screen -->
+    <div id="titleScreen" class="screen">
+        <h2>~ The Ashen Curse ~</h2>
+        <div class="story-text">
+            <p>You are an Ashen One — a warrior cursed to wander the lands of the fallen.</p>
+            <p>The First Flame is dying. The Lords of Cinder have fled their thrones. Darkness spreads across the realm.</p>
+            <p>Seek the Lords. Restore the Flame. Or let the world sink into eternal night.</p>
+        </div>
+        <button class="btn" onclick="startGame()">Begin Journey</button>
+        <div id="controls">WASD or Arrow Keys: Move | J: Attack | K: Roll | E: Interact</div>
+    </div>
+    
+    <!-- Game -->
+    <div id="gameContainer" class="hidden">
+        <canvas id="game" width="800" height="500"></canvas>
+        <div id="ui">
+            <div class="bar-container">
+                <div class="bar-label">❤ HEALTH</div>
+                <div class="bar"><div class="health-bar" id="healthBar"></div></div>
+                <div class="bar-label" style="margin-top:5px">⚡ STAMINA</div>
+                <div class="bar"><div class="stamina-bar" id="staminaBar"></div></div>
+            </div>
+        </div>
+        <div id="levelInfo">Level 1: The Cemetery</div>
+        <div id="message"></div>
+        <div id="dialogueBox">
+            <div id="dialogueName"></div>
+            <div id="dialogueText"></div>
+            <div id="dialogueContinue">[E] Continue</div>
+        </div>
+        <div id="inventory"></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        
+        // Game State
+        let game = {
+            level: 1,
+            health: 100,
+            maxHealth: 100,
+            stamina: 100,
+            weapon: null,
+            hasWeapon: false,
+            killedBosses: 0,
+            talkedTo: [],
+            gameOver: false
+        };
+        
+        // Player
+        let player = { x: 100, y: 250, size: 24, vx: 0, vy: 0, speed: 3, rolling: false, attacking: false, dir: 1 };
+        
+        // Input
+        let keys = {};
+        
+        // Level data
+        const levels = [
+            { name: 'The Cemetery', boss: 'Grave Warden', bg: '#1a1510', floor: '#252018', mobs: ['skeleton', 'hollow'] },
+            { name: 'The Catacombs', boss: 'Bone Titan', bg: '#151210', floor: '#201a18', mobs: ['skeleton', 'skeletalMage'] },
+            { name: 'The Depths', boss: 'Corrupt Guardian', bg: '#101518', floor: '#182024', mobs: ['hollow', 'bug'] },
+            { name: 'The Lost City', boss: 'Fallen Knight', bg: '#181015', floor: '#241820', mobs: 'all' },
+            { name: 'The Lord\'s Chamber', boss: 'Ashen Lord', bg: '#1a0a0a', floor: '#2a1414', mobs: 'all' }
+        ];
+        
+        // Mobs
+        const mobTypes = {
+            skeleton: { name: 'Skeleton', health: 30, damage: 10, speed: 1.5, size: 22, color: '#d4c9b0', weapon: false },
+            hollow: { name: 'Hollow', health: 40, damage: 8, speed: 1.2, size: 24, color: '#4a4a4a', weapon: false },
+            skeletalMage: { name: 'Skeletal Mage', health: 25, damage: 15, speed: 1, size: 20, color: '#9a8a7a', weapon: true },
+            bug: { name: 'Cave Bug', health: 35, damage: 12, speed: 2, size: 18, color: '#6a4a4a', weapon: false },
+            darkKnight: { name: 'Dark Knight', health: 60, damage: 15, speed: 1.8, size: 28, color: '#3a3a5a', weapon: true }
+        };
+        
+        // Bosses
+        const bosses = [
+            { name: 'Grave Warden', health: 1, damage: 20, size: 45, color: '#5a5a4a', phase: false },
+            { name: 'Bone Titan', health: 2, damage: 25, size: 55, color: '#6a5a4a', phase: true },
+            { name: 'Corrupt Guardian', health: 2, damage: 22, size: 50, color: '#4a6a5a', phase: true },
+            { name: 'Fallen Knight', health: 3, damage: 30, size: 52, color: '#4a4a6a', phase: false },
+            { name: 'Ashen Lord', health: 4, damage: 35, size: 60, color: '#8a2a2a', phase: true }
+        ];
+        
+        // NPCs
+        const npcs = [
+            { id: 'firekeeper', name: 'Fire Keeper', x: 650, y: 250, level: 1, dialogue: [
+                "Ah, an Ashen One... The flames fade, and the lords have fled their thrones.",
+                "Seek the Lords of Cinder. Only they can reignite the First Flame.",
+                "I will open the way to each realm. Find the bosses, and claim their souls.",
+                "You have the weapon now. Use it well, Ashen One. The end draws near..."
+            ]},
+            { id: 'mysterious', name: 'Mysterious Sage', x: 400, y: 200, level: 3, dialogue: [
+                "Few reach these depths... You carry great determination.",
+                "The Ashen Lord was once a hero who tried to prolong the Flame. His obsession twisted him.",
+                "To end the curse, you must defeat him and inherit his burden... or let the world die.",
+                "There is no right choice. Only yours."
+            ]},
+            { id: 'merchant', name: 'Wandering Merchant', x: 200, y: 280, level: 2, dialogue: [
+                "Heh heh... Another fool chasing lords. I've seen thousands fall.",
+                "Take this advice: not every battle must be fought. Run, live, come back stronger.",
+                "The weapons in Level 5... they're cursed. But powerful. Choose wisely.",
+                "You've come far, Ashen One. May the flames guide your way."
+            ]}
+        ];
+        
+        // Weapons
+        const weaponDrops = [
+            { name: 'Ashen Blade', damage: 40, desc: 'A blade forged from cinders', level: 5 },
+            { name: 'Soul Cleaver', damage: 45, desc: 'A massive sword of souls', level: 5 },
+            { name: 'Flame Dagger', damage: 35, desc: 'Quick strikes with fire', level: 5 }
+        ];
+        
+        // Current entities
+        let mobs = [];
+        let boss = null;
+        let currentLevel = null;
+        let dialogueActive = false;
+        let dialogueIndex = 0;
+        let currentNpc = null;
+        let weaponOnGround = null;
+        
+        // Start game
+        function startGame() {
+            document.getElementById('titleScreen').classList.add('hidden');
+            document.getElementById('gameContainer').classList.remove('hidden');
+            loadLevel(1);
+            gameLoop();
+        }
+        
+        function loadLevel(levelNum) {
+            game.level = levelNum;
+            currentLevel = levels[levelNum - 1];
+            document.getElementById('levelInfo').textContent = `Level ${levelNum}: ${currentLevel.name}`;
+            
+            player.x = 80;
+            player.y = 250;
+            player.vx = 0;
+            player.vy = 0;
+            
+            mobs = [];
+            boss = null;
+            weaponOnGround = null;
+            
+            // Spawn mobs
+            const mobList = currentLevel.mobs === 'all' ? Object.keys(mobTypes).slice(0,3) : currentLevel.mobs;
+            for (let i = 0; i < 4 + levelNum; i++) {
+                const type = mobList[Math.floor(Math.random() * mobList.length)];
+                const m = { ...mobTypes[type] };
+                m.x = 300 + Math.random() * 400;
+                m.y = 100 + Math.random() * 300;
+                m.maxHealth = m.health;
+                mobs.push(m);
+            }
+            
+            // Spawn boss
+            if (levelNum > 1) {
+                setTimeout(() => showMessage(`Boss: ${bosses[levelNum-1].name} approaches...`), 2000);
+            }
+            setTimeout(() => spawnBoss(levelNum), 3000);
+            
+            // Show NPC
+            const npcHere = npcs.find(n => n.level === levelNum && !game.talkedTo.includes(n.id));
+            if (npcHere) {
+                setTimeout(() => showMessage('An NPC awaits...'), 1000);
+            }
+            
+            updateInventory();
+        }
+        
+        function spawnBoss(levelNum) {
+            const b = bosses[levelNum - 1];
+            boss = { ...b, x: 650, y: 220, maxHealth: b.health, vx: 0, vy: 0, dir: -1 };
+        }
+        
+        function showMessage(text, duration = 2000) {
+            const msg = document.getElementById('message');
+            msg.textContent = text;
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', duration);
+        }
+        
+        function update() {
+            if (game.gameOver || dialogueActive) return;
+            
+            // Player movement
+            let moveX = 0, moveY = 0;
+            if (keys['KeyW'] || keys['ArrowUp']) moveY = -1;
+            if (keys['KeyS'] || keys['ArrowDown']) moveY = 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) moveX = -1;
+            if (keys['KeyD'] || keys['ArrowRight']) moveX = 1;
+            
+            if (moveX !== 0) player.dir = moveX;
+            
+            const speed = player.rolling ? player.speed * 1.5 : player.speed;
+            if (moveX !== 0 || moveY !== 0) {
+                if (game.stamina > 5) {
+                    player.x += moveX * speed;
+                    player.y += moveY * speed;
+                    game.stamina = Math.max(0, game.stamina - 0.3);
+                }
+            }
+            
+            // Roll
+            if ((keys['KeyK']) && !player.rolling && game.stamina > 20 && (moveX !== 0 || moveY !== 0)) {
+                player.rolling = true;
+                game.stamina -= 20;
+                setTimeout(() => player.rolling = false, 400);
+            }
+            
+            // Attack
+            if (keys['KeyJ'] && !player.attacking) {
+                player.attacking = true;
+                setTimeout(() => player.attacking = false, 300);
+                
+                // Hit mobs
+                mobs = mobs.filter(m => {
+                    const hit = checkHit(m);
+                    if (hit) {
+                        const dmg = game.hasWeapon ? 25 + (game.weapon?.damage || 0) / 2 : 15;
+                        m.health -= dmg;
+                        m.x += player.dir * 20;
+                        return m.health > 0;
+                    }
+                    return true;
+                });
+                
+                // Hit boss
+                if (boss) {
+                    const hit = checkHit(boss);
+                    if (hit) {
+                        const dmg = game.hasWeapon ? 25 + (game.weapon?.damage || 0) : 15;
+                        boss.health -= dmg;
+                        boss.x += player.dir * 15;
+                        if (boss.health <= 0) {
+                            defeatBoss();
+                        }
+                    }
+                }
+            }
+            
+            // Bounds
+            player.x = Math.max(30, Math.min(canvas.width - 30, player.x));
+            player.y = Math.max(80, Math.min(canvas.height - 30, player.y));
+            
+            // Stamina regen
+            if (game.stamina < 100) game.stamina += 0.2;
+            
+            // Interact with NPC
+            if (keys['KeyE']) {
+                const npcHere = npcs.find(n => n.level === game.level && !game.talkedTo.includes(n.id));
+                if (npcHere && Math.abs(player.x - npcHere.x) < 60 && Math.abs(player.y - npcHere.y) < 60) {
+                    startDialogue(npcHere);
+                }
+                keys['KeyE'] = false;
+            }
+            
+            // Pick up weapon
+            if (weaponOnGround && Math.abs(player.x - weaponOnGround.x) < 40 && Math.abs(player.y - weaponOnGround.y) < 40) {
+                game.hasWeapon = true;
+                game.weapon = weaponOnGround.weapon;
+                showMessage(`Acquired: ${game.weapon.name}!`);
+                weaponOnGround = null;
+                updateInventory();
+            }
+            
+            // Mob AI
+            mobs.forEach(m => {
+                const dist = Math.sqrt((player.x - m.x) ** 2 + (player.y - m.y) ** 2);
+                if (dist < 200) {
+                    const dx = player.x - m.x;
+                    const dy = player.y - m.y;
+                    const len = Math.sqrt(dx*dx + dy*dy);
+                    m.x += (dx/len) * m.speed;
+                    m.y += (dy/len) * m.speed;
+                    
+                    // Damage player
+                    if (dist < 30 && !player.rolling) {
+                        takeDamage(m.damage);
+                        player.x += (player.x - m.x) > 0 ? 30 : -30;
+                    }
+                }
+            });
+            
+            // Boss AI
+            if (boss) {
+                const dist = Math.sqrt((player.x - boss.x) ** 2 + (player.y - boss.y) ** 2);
+                const dx = player.x - boss.x;
+                const dy = player.y - boss.y;
+                const len = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist > 60) {
+                    boss.x += (dx/len) * (boss.speed || 1.5);
+                    boss.y += (dy/len) * (boss.speed || 1.5);
+                } else if (Math.random() < 0.02) {
+                    takeDamage(boss.damage);
+                    player.x += player.dir * 40;
+                }
+            }
+            
+            updateUI();
+        }
+        
+        function checkHit(target) {
+            const range = 50;
+            return Math.abs(player.x - target.x) < range && Math.abs(player.y - target.y) < target.size + 10;
+        }
+        
+        function takeDamage(amount) {
+            game.health -= amount;
+            if (game.health <= 0) {
+                gameOver();
+            }
+        }
+        
+        function defeatBoss() {
+            showMessage(`Defeated ${boss.name}!`);
+            game.killedBosses++;
+            boss = null;
+            
+            // Weapon drop at level 5
+            if (game.level === 5) {
+                const wp = weaponDrops[Math.floor(Math.random() * weaponDrops.length)];
+                weaponOnGround = { x: 400, y: 250, weapon: wp };
+                showMessage('A weapon lies on the ground...');
+            }
+            
+            setTimeout(() => {
+                if (game.level < 5) {
+                    loadLevel(game.level + 1);
+                } else {
+                    ending();
+                }
+            }, 3000);
+        }
+        
+        function ending() {
+            game.gameOver = true;
+            showMessage('', 0);
+            document.getElementById('message').innerHTML = 
+                '🎭 THE END 🎭<br><br>' +
+                'You have defeated the Ashen Lord.<br>' +
+                'The First Flame awaits...<br><br>' +
+                '<small>Thank you for playing!</small>';
+            document.getElementById('message').style.display = 'block';
+            document.getElementById('message').style.color = '#daa520';
+        }
+        
+        function gameOver() {
+            game.gameOver = true;
+            document.getElementById('message').innerHTML = '💀 YOU DIED 💀<br><br><small>Press R to restart</small>';
+            document.getElementById('message').style.display = 'block';
+        }
+        
+        function startDialogue(npc) {
+            dialogueActive = true;
+            currentNpc = npc;
+            dialogueIndex = 0;
+            showDialogue();
+        }
+        
+        function showDialogue() {
+            const box = document.getElementById('dialogueBox');
+            document.getElementById('dialogueName').textContent = currentNpc.name;
+            document.getElementById('dialogueText').textContent = currentNpc.dialogue[dialogueIndex];
+            box.style.display = 'block';
+        }
+        
+        function nextDialogue() {
+            dialogueIndex++;
+            if (dialogueIndex >= currentNpc.dialogue.length) {
+                document.getElementById('dialogueBox').style.display = 'none';
+                dialogueActive = false;
+                game.talkedTo.push(currentNpc.id);
+            } else {
+                showDialogue();
+            }
+        }
+        
+        function updateUI() {
+            document.getElementById('healthBar').style.width = game.health + '%';
+            document.getElementById('staminaBar').style.width = game.stamina + '%';
+        }
+        
+        function updateInventory() {
+            const inv = document.getElementById('inventory');
+            if (game.hasWeapon && game.weapon) {
+                inv.textContent = `Weapon: ${game.weapon.name} (${game.weapon.damage} DMG)`;
+            } else {
+                inv.textContent = 'Weapon: Fists';
+            }
+        }
+        
+        function draw() {
+            // Background
+            ctx.fillStyle = currentLevel?.bg || '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Floor
+            ctx.fillStyle = currentLevel?.floor || '#222';
+            ctx.fillRect(0, 70, canvas.width, canvas.height - 70);
+            
+            // Draw weapon on ground
+            if (weaponOnGround) {
+                ctx.fillStyle = '#daa520';
+                ctx.beginPath();
+                ctx.moveTo(weaponOnGround.x, weaponOnGround.y - 10);
+                ctx.lineTo(weaponOnGround.x + 5, weaponOnGround.y);
+                ctx.lineTo(weaponOnGround.x, weaponOnGround.y + 10);
+                ctx.lineTo(weaponOnGround.x - 5, weaponOnGround.y);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.font = '10px Arial';
+                ctx.fillText('⚔', weaponOnGround.x - 6, weaponOnGround.y + 3);
+            }
+            
+            // NPCs
+            npcs.filter(n => n.level === game.level && !game.talkedTo.includes(n.id)).forEach(npc => {
+                ctx.fillStyle = '#4a8a6a';
+                ctx.beginPath();
+                ctx.arc(npc.x, npc.y, 15, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.fillText('NPC', npc.x - 12, npc.y - 20);
+            });
+            
+            // Mobs
+            mobs.forEach(m => {
+                ctx.fillStyle = m.color;
+                ctx.beginPath();
+                ctx.arc(m.x, m.y, m.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Health bar
+                if (m.health < m.maxHealth) {
+                    ctx.fillStyle = '#333';
+                    ctx.fillRect(m.x - 15, m.y - m.size - 10, 30, 5);
+                    ctx.fillStyle = '#8b0000';
+                    ctx.fillRect(m.x - 15, m.y - m.size - 10, 30 * (m.health / m.maxHealth), 5);
+                }
+            });
+            
+            // Boss
+            if (boss) {
+                ctx.fillStyle = boss.color;
+                ctx.beginPath();
+                ctx.arc(boss.x, boss.y, boss.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                
+                // Boss health bar
+                ctx.fillStyle = '#333';
+                ctx.fillRect(boss.x - 40, boss.y - boss.size - 20, 80, 8);
+                ctx.fillStyle = '#8b0000';
+                ctx.fillRect(boss.x - 40, boss.y - boss.size - 20, 80 * (boss.health / boss.maxHealth), 8);
+            }
+            
+            // Player
+            ctx.fillStyle = player.rolling ? '#fff' : '#7a5a3a';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#c9a86c';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Attack visual
+            if (player.attacking) {
+                ctx.fillStyle = game.hasWeapon ? '#daa520' : '#fff';
+                ctx.beginPath();
+                ctx.arc(player.x + player.dir * 35, player.y, 20, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Input
+        document.addEventListener('keydown', e => {
+            keys[e.code] = true;
+            if (e.code === 'KeyE' && dialogueActive) {
+                nextDialogue();
+            }
+            if (e.code === 'KeyR' && game.gameOver) {
+                location.reload();
+            }
+        });
+        document.addEventListener('keyup', e => keys[e.code] = false);
+    </script>
+</body>
+</html>
