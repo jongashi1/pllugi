@@ -8,6 +8,20 @@ Use a host that can run Node.js and set the start command to:
 npm start
 ```
 
+After deploying, test this URL in a browser:
+
+```txt
+https://your-domain.com/api/health
+```
+
+If the server is running, it should show:
+
+```json
+{"ok":true}
+```
+
+If it shows `503`, the hosting provider is not running the Node app or the app crashed during startup. Check the host's logs, make sure the start command is `npm start`, and make sure the site is deployed as a Node app instead of static files.
+
 Static-only hosting will load the HTML/CSS, but the diary cannot save, load, or delete entries because `/api/journal` will not exist.
 
 If your host lets you set environment variables, set:

@@ -57,9 +57,16 @@ async function requestJournal(path, options = {}) {
   }
 
   if (!response.ok) {
-    const message = response.status === 401
-      ? "The journal password was rejected."
-      : `The journal server is unavailable. /api/journal returned ${response.status}.`;
+    let message = `The journal server is unavailable. /api/journal returned ${response.status}.`;
+
+    if (response.status === 401) {
+      message = "The journal password was rejected.";
+    }
+
+    if (response.status === 503) {
+      message = "The journal server is unavailable. Your host returned 503, which usually means the Node app is not running or crashed.";
+    }
+
     throw new Error(message);
   }
 

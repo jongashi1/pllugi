@@ -150,6 +150,11 @@ function serveStatic(request, response) {
 
 const server = http.createServer(async (request, response) => {
   try {
+    if (request.url === "/api/health") {
+      sendJson(response, 200, { ok: true });
+      return;
+    }
+
     if (request.url.startsWith("/api/journal")) {
       await handleJournalApi(request, response);
       return;
