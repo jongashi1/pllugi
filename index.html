@@ -1,132 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OpenClaw Games Hub 🎮</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #fff;
-            padding: 2rem;
-        }
-        
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 2rem;
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
-            text-align: center;
-        }
-        
-        .game-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            width: 100%;
-            max-width: 1000px;
-        }
-        
-        .game-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(0, 255, 136, 0.3);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            text-decoration: none;
-            color: white;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-        
-        .game-card:hover {
-            transform: translateY(-10px);
-            background: rgba(255, 255, 255, 0.1);
-            border-color: #00ff88;
-            box-shadow: 0 0 30px rgba(0, 255, 136, 0.4);
-        }
-        
-        .game-card h2 {
-            font-size: 1.8rem;
-            margin-bottom: 1rem;
-            color: #00ff88;
-        }
-        
-        .game-card p {
-            font-size: 1.1rem;
-            color: #aaa;
-            margin-bottom: 1.5rem;
-        }
-        
-        .btn {
-            background: linear-gradient(90deg, #00ff88, #00ccff);
-            border: none;
-            padding: 0.8rem 1.5rem;
-            font-size: 1rem;
-            border-radius: 10px;
-            color: #000;
-            font-weight: bold;
-            transition: transform 0.2s;
-        }
-        
-        .game-card:hover .btn {
-            transform: scale(1.05);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pllugi</title>
+  <link rel="icon" type="image/png" href="images/logo.png">
+  <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-    <h1>🎮 Game Hub</h1>
-    
-    <div class="game-grid">
-        <a href="fighting_game.html" class="game-card">
-            <h2>Fighting Game</h2>
-            <p>Test your combat skills in an epic battle!</p>
-            <div class="btn">Play Now</div>
-        </a>
-        
-        <a href="platformer.html" class="game-card">
-            <h2>Platformer</h2>
-            <p>Jump and explore challenging levels!</p>
-            <div class="btn">Play Now</div>
-        </a>
-        
-        <a href="snake.html" class="game-card">
-            <h2>Snake 🐍</h2>
-            <p>The classic arcade experience.</p>
-            <div class="btn">Play Now</div>
-        </a>
-        
-        <a href="souls_game.html" class="game-card">
-            <h2>Souls Game</h2>
-            <p>Prepare to die in this punishing world.</p>
-            <div class="btn">Play Now</div>
-        </a>
-        
-        <a href="storygame.html" class="game-card">
-            <h2>Story Game</h2>
-            <p>Your choices shape the narrative.</p>
-            <div class="btn">Play Now</div>
-        </a>
-    </div>
+<body class="login-page">
+  <main class="login-shell">
+    <img class="site-logo" src="images/logo.png" alt="Pllugi image">
+
+    <form class="secret-form" id="secretForm">
+      <label for="secretPhrase">Secret Phrase</label>
+      <input id="secretPhrase" name="secretPhrase" type="password" autocomplete="off" required>
+      <button type="submit">Enter</button>
+      <p class="error-message" id="errorMessage" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <script src="script.js"></script>
 </body>
 </html>
