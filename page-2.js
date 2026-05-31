@@ -10,6 +10,7 @@ const deleteEntryButton = document.querySelector("#deleteEntryButton");
 const entryTitle = document.querySelector("#entryTitle");
 const entryBody = document.querySelector("#entryBody");
 const saveStatus = document.querySelector("#saveStatus");
+const journalApiBase = window.JOURNAL_API_BASE || "";
 
 let entries = [];
 let activeEntryId = null;
@@ -40,19 +41,25 @@ function getEntryLabel(entry) {
 }
 
 async function requestJournal(path, options = {}) {
-  const response = await fetch(path, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      "X-Journal-Password": getPassword(),
-      ...(options.headers || {})
-    }
-  });
+  let response;
+
+  try {
+    response = await fetch(`${journalApiBase}${path}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Journal-Password": getPassword(),
+        ...(options.headers || {})
+      }
+    });
+  } catch (error) {
+    throw new Error("The journal server is unavailable. This page must be hosted with the Node server, not as static HTML only.");
+  }
 
   if (!response.ok) {
     const message = response.status === 401
       ? "The journal password was rejected."
-      : "The journal server is unavailable.";
+      : `The journal server is unavailable. /api/journal returned ${response.status}.`;
     throw new Error(message);
   }
 

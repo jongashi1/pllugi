@@ -189,12 +189,14 @@ a {
 .journal-lock {
   display: grid;
   min-height: 100vh;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
   gap: 24px;
   padding: 32px;
 }
 
 .journal-lock img {
+  display: block;
   width: min(60vw, 260px);
   max-height: 200px;
   object-fit: contain;
@@ -209,6 +211,7 @@ a {
   display: grid;
   grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
   min-height: 100vh;
+  background: #050505;
 }
 
 .entries-panel {
@@ -318,6 +321,7 @@ a {
   min-height: 100vh;
   padding: clamp(18px, 4vw, 42px);
   gap: 16px;
+  background: #050505;
 }
 
 .editor-toolbar {
