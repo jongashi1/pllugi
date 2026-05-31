@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Journal</title>
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body class="journal-page">
+  <main class="journal-app" id="journalApp">
+    <aside class="entries-panel" aria-label="Entries">
+      <div class="entries-header">
+        <h1>Entries</h1>
+        <button class="secondary-button" id="newEntryButton" type="button">New</button>
+      </div>
+      <div class="entries-list" id="entriesList"></div>
+    </aside>
+
+    <section class="editor-panel" aria-label="Journal editor">
+      <div class="editor-toolbar">
+        <input id="entryTitle" type="text" placeholder="Entry title" aria-label="Entry title">
+        <button id="saveEntryButton" type="button">Save</button>
+        <button class="danger-button" id="deleteEntryButton" type="button" disabled>Delete</button>
+      </div>
+      <textarea id="entryBody" placeholder="Write here..." aria-label="Journal entry"></textarea>
+      <p class="save-status" id="saveStatus" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="../page-2.js"></script>
+</body>
+</html>

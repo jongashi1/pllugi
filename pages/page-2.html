@@ -3,10 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Square Two</title>
+  <title>Journal Lock</title>
   <link rel="stylesheet" href="../styles.css">
 </head>
-<body class="empty-page">
-  <img src="../images/seal.jpg" alt="Pllugi logo">
+<body class="journal-page">
+  <section class="journal-lock" aria-labelledby="lockTitle">
+    <img src="../images/seal.jpg" alt="Pllugi logo">
+    <form class="secret-form" id="journalPasswordForm">
+      <h1 id="lockTitle">Journal</h1>
+      <label for="journalPassword">Password</label>
+      <input id="journalPassword" type="password" autocomplete="current-password" required>
+      <button type="submit">Unlock</button>
+      <p class="error-message" id="journalError" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <script src="../page-2.js"></script>
 </body>
 </html>
