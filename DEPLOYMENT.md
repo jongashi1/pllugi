@@ -24,6 +24,26 @@ If it shows `503`, the hosting provider is not running the Node app or the app c
 
 Static-only hosting will load the HTML/CSS, but the diary cannot save, load, or delete entries because `/api/journal` will not exist.
 
+If your host does not support Node but does support PHP, upload the `api` folder too. The page will automatically fall back from:
+
+```txt
+/api/journal
+```
+
+to:
+
+```txt
+/api/journal.php
+```
+
+You can test the PHP backend here:
+
+```txt
+https://your-domain.com/api/journal.php
+```
+
+Without the password header it should show `Unauthorized`. That is good: it means the PHP file exists.
+
 If your host lets you set environment variables, set:
 
 ```sh

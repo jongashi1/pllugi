@@ -40,20 +40,37 @@ function getEntryLabel(entry) {
   return firstLine ? firstLine.trim().slice(0, 48) : "Untitled entry";
 }
 
+function getPhpApiPath(path) {
+  if (path.startsWith("/api/journal/")) {
+    const entryId = path.slice("/api/journal/".length);
+    return `/api/journal.php?id=${entryId}`;
+  }
+
+  return "/api/journal.php";
+}
+
+async function fetchJournal(path, options = {}) {
+  return fetch(`${journalApiBase}${path}`, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Journal-Password": getPassword(),
+      ...(options.headers || {})
+    }
+  });
+}
+
 async function requestJournal(path, options = {}) {
   let response;
 
   try {
-    response = await fetch(`${journalApiBase}${path}`, {
-      ...options,
-      headers: {
-        "Content-Type": "application/json",
-        "X-Journal-Password": getPassword(),
-        ...(options.headers || {})
-      }
-    });
+    response = await fetchJournal(path, options);
+
+    if (response.status === 404 || response.status === 503) {
+      response = await fetchJournal(getPhpApiPath(path), options);
+    }
   } catch (error) {
-    throw new Error("The journal server is unavailable. This page must be hosted with the Node server, not as static HTML only.");
+    throw new Error("The journal server is unavailable. The site needs either the Node server or api/journal.php on a PHP host.");
   }
 
   if (!response.ok) {
@@ -65,6 +82,10 @@ async function requestJournal(path, options = {}) {
 
     if (response.status === 503) {
       message = "The journal server is unavailable. Your host returned 503, which usually means the Node app is not running or crashed.";
+    }
+
+    if (response.status === 404) {
+      message = "The journal server is unavailable. Neither /api/journal nor /api/journal.php was found.";
     }
 
     throw new Error(message);
